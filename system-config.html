@@ -119,11 +119,28 @@
                 notify(`Processing: ${file.name}`);
 
                 reader.onload = (e) => {
-                    base64String = e.target.result;
-                    const preview = document.getElementById('imgPreview');
-                    preview.src = base64String;
-                    preview.style.display = 'block';
-                    document.getElementById('triggerBtn').style.display = 'none';
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        // Create a canvas to compress and resize
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 400; // Forces width to 400px to keep string short
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Convert to jpeg with 0.7 quality to further shrink size
+                        base64String = canvas.toDataURL('image/jpeg', 0.7);
+                        
+                        const preview = document.getElementById('imgPreview');
+                        preview.src = base64String;
+                        preview.style.display = 'block';
+                        document.getElementById('triggerBtn').style.display = 'none';
+                        notify("Image optimized & ready.");
+                    };
                 };
                 reader.readAsDataURL(file);
             }
