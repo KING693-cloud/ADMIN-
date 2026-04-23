@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Inbox</title>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: "Segoe UI", sans-serif; 
+        }
         
         body { 
             background: url('1.jpg') no-repeat center center fixed;
@@ -25,16 +31,17 @@
             border-right: 1px solid #222; 
         }
         
-        /* Header */
+        /* HEADER SECTION */
         .header { 
-            padding: 16px; 
+            padding: 20px; 
             background: #075e54; 
             display: flex; 
             align-items: center; 
-            gap: 15px; 
+            gap: 20px; 
             font-weight: bold; 
             font-size: 18px; 
             color: #fff; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
         .back-btn { 
@@ -46,18 +53,36 @@
             padding: 5px; 
         }
 
-        /* List Area with Rolling Animation */
+        /* LIST AREA */
         .list { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 15px; 
+            padding: 20px; 
         }
         
+        /* FAST SPINNER ANIMATION */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #25d366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            /* Animation set to very fast 0.5s */
+            animation: spin 0.5s linear infinite;
+            margin: 60px auto 15px auto;
+        }
+
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        /* CARD STYLING */
         .user-card { 
-            padding: 20px; 
-            margin-bottom: 12px; 
+            padding: 22px; 
+            margin-bottom: 15px; 
             background: rgba(255, 255, 255, 0.08); 
-            border-radius: 16px; 
+            border-radius: 18px; 
             cursor: pointer; 
             position: relative; 
             animation: rollIn 0.5s ease-out forwards; 
@@ -70,12 +95,14 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        .user-card:hover { background: rgba(255, 255, 255, 0.15); }
+        .user-card:hover { 
+            background: rgba(255, 255, 255, 0.15); 
+        }
         
         .user-card b { 
             display: block; 
-            margin-bottom: 5px; 
-            font-size: 16px; 
+            margin-bottom: 6px; 
+            font-size: 17px; 
             color: #fff; 
         }
         
@@ -88,7 +115,6 @@
             text-overflow: ellipsis; 
         }
         
-        /* Red Profit/Cart Style */
         .cart-msg { 
             color: #ff4757 !important; 
             font-weight: bold; 
@@ -96,11 +122,11 @@
         
         .badge { 
             position: absolute; 
-            top: 15px; 
-            right: 15px; 
+            top: 18px; 
+            right: 18px; 
             background: #25d366; 
             color: white; 
-            padding: 4px 10px; 
+            padding: 5px 12px; 
             border-radius: 20px; 
             font-size: 11px; 
             font-weight: bold; 
@@ -114,13 +140,20 @@
             <button class="back-btn" onclick="location.href='index.html'">←</button>
             ADMIN INBOX
         </div>
-        <div id="list" class="list"></div>
+
+        <div id="list" class="list">
+            <div id="loader">
+                <div class="spinner"></div>
+                <p style="text-align:center; opacity:0.6;">Syncing active chats...</p>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // APP INITIALIZATION
         const db = getFirestore(initializeApp({
             apiKey: "AIzaSy...",
             authDomain: "happytails-50138.firebaseapp.com",
@@ -129,26 +162,30 @@
 
         const list = document.getElementById("list");
 
+        // SNAPSHOT LISTENER
         onSnapshot(collection(db, "chats"), (snap) => {
             let chats = [];
+            
             snap.forEach(d => {
                 const data = d.data();
                 chats.push({
                     id: d.id,
                     lastMessage: data.lastMessage || "No message yet...",
                     lastTime: data.lastTime || 0,
-                    lastType: data.lastType || "text", // Detects if it's 'buy' or 'text'
+                    lastType: data.lastType || "text",
                     unread: (data.lastSender === "customer") && (data.lastTime > (data.lastSeenByAdmin || 0))
                 });
             });
 
-            // Sorting by lastTime (Highest/Newest first)
+            // SORT BY TIME
             chats.sort((a, b) => b.lastTime - a.lastTime);
 
+            // CLEAR AND REBUILD
             list.innerHTML = "";
+
+            // BUILD LIST
             chats.forEach(c => {
                 const isCart = c.lastType === "buy";
-                // Cart display logic: Adds emoji and red text alert
                 const displayText = isCart ? `🛒 BUYING NOW: ${c.lastMessage}` : c.lastMessage;
                 
                 const div = document.createElement("div");
@@ -159,10 +196,12 @@
                     ${c.unread ? `<div class="badge">NEW</div>` : ""}
                 `;
                 
+                // CLICK ACTION
                 div.onclick = async () => {
                     await updateDoc(doc(db, "chats", c.id), { lastSeenByAdmin: Date.now() });
                     window.location.href = "con.html?user=" + c.id;
                 };
+                
                 list.appendChild(div);
             });
         });
