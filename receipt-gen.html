@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFFICIAL OWNERSHIP DEED | HTH-PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-magenta: #FF00FF;
+            --neon-cyan: #00FFFF;
+            --neon-gold: #FFD700;
+            --bg-overlay: rgba(10, 15, 30, 0.9);
+        }
+
+        body { 
+            margin: 0; font-family: 'Inter', sans-serif; 
+            background: url('1.jpg') no-repeat center center fixed;
+            background-size: cover; 
+            color: white; min-height: 100vh;
+        }
+
+        .overlay { background: var(--bg-overlay); min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 900px; margin: auto; }
+        
+        .shining-text {
+            text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px var(--neon-cyan);
+            color: #fff !important; text-transform: uppercase;
+        }
+
+        /* Controls */
+        .controls { 
+            background: rgba(255,255,255,0.05); padding: 30px; 
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px); margin-bottom: 30px; 
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        input, select { 
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.3); 
+            border: 1px solid #444; color: white; border-radius: 10px; 
+            box-sizing: border-box; outline: none;
+        }
+        input:focus { border-color: var(--neon-cyan); }
+        label { font-size: 0.7rem; color: #aaa; margin-bottom: 5px; display: block; text-transform: uppercase; }
+        
+        .btn-action { 
+            padding: 15px; width: 100%; background: transparent; 
+            border: 1px solid var(--neon-gold); color: var(--neon-gold); 
+            font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 20px;
+            border-radius: 10px; transition: 0.3s;
+        }
+        .btn-action:hover { background: var(--neon-gold); color: #000; }
+        .btn-back { border-color: #666; color: #ccc; margin-top: 10px; text-decoration: none; display: block; text-align: center; }
+
+        /* The Deed Styling */
+        #deed-area { 
+            background: white; padding: 60px; min-height: 900px; 
+            border: 8px double #c6a02d; box-shadow: 0 0 30px rgba(0,0,0,0.5); 
+            display: none; position: relative; color: #000;
+        }
+        .stamp { position: absolute; top: 40px; right: 40px; border: 3px solid #c6a02d; padding: 10px; transform: rotate(10deg); color: #c6a02d; font-weight: bold; font-size: 1.2rem; }
+        .doc-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; }
+        .section-header { background: #eee; padding: 5px; font-weight: bold; text-transform: uppercase; margin: 20px 0 10px; border-left: 5px solid #c6a02d; }
+        .grid-data { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; }
+        .row { border-bottom: 1px solid #ddd; padding: 5px 0; }
+        .sig-block { display: flex; justify-content: space-between; margin-top: 80px; }
+        .sig-line { border-top: 1px solid #000; width: 300px; text-align: center; font-size: 0.8rem; padding-top: 5px; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .overlay { background: none; padding: 0; }
+            .controls { display: none; }
+            #deed-area { box-shadow: none; border: 5px double #000; display: block !important; }
+            #printBtn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="container">
+        <form class="controls" id="deedForm" onsubmit="event.preventDefault(); generateDeed();">
+            <h2 class="shining-text">OFFICIAL PROPERTY DEED GENERATOR</h2>
+            <div class="form-grid">
+                <div><label>Buyer Name</label><input type="text" id="buyerName" required></div>
+                <div><label>Buyer Address</label><input type="text" id="buyerAddr" required></div>
+                <div><label>Animal/Asset Name</label><input type="text" id="animalName" required></div>
+                <div><label>Breed/Classification</label><input type="text" id="breed" required></div>
+                <div><label>Date of Birth</label><input type="date" id="dob" required></div>
+                <div><label>Gender</label>
+                    <select id="gender" required>
+                        <option value="">Select Gender...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Neutered">Neutered</option>
+                    </select>
+                </div>
+                <div><label>Color/Markings</label><input type="text" id="color" required></div>
+                <div><label>Weight (KG/LBS)</label><input type="text" id="weight" required></div>
+                <div><label>Valuation Amount ($)</label><input type="number" id="amount" required></div>
+                <div><label>Status</label>
+                    <select id="status" required>
+                        <option value="Active/Certified">Active/Certified</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-action">GENERATE OFFICIAL DEED</button>
+            <a href="index.html" class="btn-action btn-back">BACK TO DASHBOARD</a>
+        </form>
+
+        <div id="deed-area">
+            <div class="stamp">OFFICIALLY REGISTERED</div>
+            <div class="doc-header">
+                <h1>CERTIFICATE OF OWNERSHIP</h1>
+                <p><strong>REGISTRY ID:</strong> <span id="rRegID"></span></p>
+                <p><strong>ISSUE DATE:</strong> <span id="rDate"></span></p>
+            </div>
+
+            <div class="section-header">1. Issuer (Happy Tails Home)</div>
+            <div class="row"><strong>Registry Authority:</strong> International Kennel/Asset Registry (IKAR)</div>
+            <div class="row"><strong>Office Address:</strong> HTH-Global Corporate HQ, Toronto/New York</div>
+            <div class="row"><strong>Compliance ID:</strong> <span id="rCompID"></span></div>
+
+            <div class="section-header">2. Owner/Property Holder Information</div>
+            <div class="grid-data">
+                <div class="row"><strong>Full Name:</strong> <span id="rBuyer"></span></div>
+                <div class="row"><strong>Property ID:</strong> <span id="rPID"></span></div>
+                <div class="row"><strong>Address:</strong> <span id="rBuyerAddr"></span></div>
+                <div class="row"><strong>Jurisdiction:</strong> International Law</div>
+            </div>
+
+            <div class="section-header">3. Asset Description</div>
+            <div class="grid-data">
+                <div class="row"><strong>Asset Name:</strong> <span id="rAnimal"></span></div>
+                <div class="row"><strong>Breed:</strong> <span id="rBreed"></span></div>
+                <div class="row"><strong>D.O.B:</strong> <span id="rDOB"></span></div>
+                <div class="row"><strong>Color:</strong> <span id="rColor"></span></div>
+                <div class="row"><strong>Gender:</strong> <span id="rGender"></span></div>
+                <div class="row"><strong>Weight:</strong> <span id="rWeight"></span></div>
+                <div class="row"><strong>Valuation:</strong> $<span id="rAmount"></span></div>
+                <div class="row"><strong>Status:</strong> <span id="rStatus"></span></div>
+            </div>
+
+            <div class="section-header">4. Legal Verification</div>
+            <div style="font-size: 0.8rem; line-height: 1.5; text-align: justify;">
+                This Deed of Ownership serves as legal proof that the asset described above is officially registered to the Holder. Validated by the international registry database under reference code <span id="rHash"></span>. The seller guarantees pedigree and health as documented. Transfer of ownership is finalized upon signature below.
+            </div>
+
+            <div class="sig-block">
+                <div class="sig-line">Seller (Authorized HTH Representative)</div>
+                <div class="sig-line">Buyer (Property Holder)</div>
+            </div>
+        </div>
+
+        <button style="background: var(--neon-cyan); color: #000; display: none; margin-bottom:50px;" id="printBtn" class="btn-action" onclick="window.print()">PRINT AS DEED</button>
+    </div>
+</div>
+
+<script>
+    function generateDeed() {
+        const rand = (len) => Math.random().toString(36).substring(2, 2 + len).toUpperCase();
+        const num = (len) => Math.floor(Math.random() * Math.pow(10, len)).toString().padStart(len, '0');
+
+        document.getElementById('rRegID').innerText = `HTH-${rand(3)}-${num(4)}`;
+        document.getElementById('rDate').innerText = new Date().toLocaleDateString();
+        document.getElementById('rCompID').innerText = `COMP-${rand(4)}-${num(6)}`;
+        
+        document.getElementById('rBuyer').innerText = document.getElementById('buyerName').value;
+        document.getElementById('rPID').innerText = `OWN-${num(8)}`;
+        document.getElementById('rBuyerAddr').innerText = document.getElementById('buyerAddr').value;
+
+        document.getElementById('rAnimal').innerText = document.getElementById('animalName').value;
+        document.getElementById('rBreed').innerText = document.getElementById('breed').value;
+        const dob = new Date(document.getElementById('dob').value);
+        document.getElementById('rDOB').innerText = dob.toDateString();
+        
+        document.getElementById('rColor').innerText = document.getElementById('color').value;
+        document.getElementById('rGender').innerText = document.getElementById('gender').value;
+        document.getElementById('rWeight').innerText = document.getElementById('weight').value;
+        document.getElementById('rAmount').innerText = document.getElementById('amount').value;
+        document.getElementById('rStatus').innerText = document.getElementById('status').value;
+        
+        const hash = rand(10) + "-" + rand(10);
+        document.getElementById('rHash').innerText = hash;
+
+        document.getElementById('deed-area').style.display = "block";
+        document.getElementById('printBtn').style.display = "block";
+        
+        document.getElementById('deed-area').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>

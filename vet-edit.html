@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTH | VET MASTER CONTROL</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-magenta: #FF00FF;
+            --neon-cyan: #00FFFF;
+            --neon-red: #FF4444;
+            --bg-overlay: rgba(10, 15, 30, 0.9);
+        }
+
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: url('1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white; min-height: 100vh;
+        }
+
+        .overlay { background: var(--bg-overlay); min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 800px; margin: auto; }
+
+        .shining-text {
+            text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px var(--neon-cyan);
+            color: #fff !important; text-transform: uppercase;
+        }
+
+        /* Navigation */
+        .back-btn { 
+            text-decoration: none; color: white; padding: 10px 20px; 
+            border: 1px solid var(--neon-magenta); border-radius: 5px; 
+            font-size: 0.8rem; text-transform: uppercase; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 10px; margin-bottom: 30px;
+        }
+        .back-btn:hover { background: var(--neon-magenta); }
+
+        /* Form */
+        .admin-form { 
+            background: rgba(255,255,255,0.05); padding: 30px; 
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        input, select, textarea { 
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.3); 
+            border: 1px solid #444; border-radius: 10px; color: white; box-sizing: border-box;
+            outline: none;
+        }
+        input:focus { border-color: var(--neon-cyan); }
+        .full { grid-column: span 2; }
+        .add-btn { 
+            width: 100%; padding: 18px; background: transparent; border: 1px solid var(--neon-cyan); 
+            border-radius: 12px; color: var(--neon-cyan); font-weight: bold; cursor: pointer; 
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .add-btn:hover { background: var(--neon-cyan); color: #000; }
+
+        /* Cards */
+        .vet-card { 
+            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; 
+            margin-top: 20px; display: flex; justify-content: space-between; align-items: center; 
+            border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);
+        }
+        .delete-btn { 
+            background: transparent; color: var(--neon-red); border: 1px solid var(--neon-red); 
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            transition: 0.3s;
+        }
+        .delete-btn:hover { background: var(--neon-red); color: white; }
+
+        /* Custom Modal */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(5px); }
+        .modal-box { background: #111; padding: 40px; border-radius: 20px; border: 1px solid #444; text-align: center; max-width: 300px; }
+        .modal-btn { padding: 10px 20px; border-radius: 10px; border: none; color: white; cursor: pointer; margin: 5px; font-weight: bold; }
+        .modal-confirm { background: var(--neon-red); }
+        .modal-close { background: #444; }
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="container">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> BACK TO HOME</a>
+        
+        <h1 class="shining-text" style="font-size: 1.5rem;">🏥 VET MASTER CONTROL</h1>
+        
+        <div class="admin-form">
+            <form id="vetForm" class="form-grid">
+                <input type="text" id="clinicName" placeholder="Clinic Name" class="full" required>
+                <input type="text" id="doctorName" placeholder="Doctor Name">
+                <input type="tel" id="phone" placeholder="Phone Number" required>
+                <input type="text" id="location" placeholder="City/Location" class="full" required>
+                <input type="text" id="specialty" placeholder="Specialty">
+                <input type="text" id="hours" placeholder="Hours (e.g. 9am-8pm)">
+                <select id="emergency" class="full">
+                    <option value="Yes">Emergency Services: YES</option>
+                    <option value="No">Emergency Services: NO</option>
+                </select>
+                <textarea id="notes" placeholder="Additional Notes..." class="full"></textarea>
+                <button type="submit" class="add-btn" id="submitBtn">PUBLISH CLINIC</button>
+            </form>
+        </div>
+
+        <h3 class="shining-text" style="margin-top:40px; font-size: 1.2rem;">Active Partners (<span id="count">0</span>)</h3>
+        <div id="vetList"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+        <div id="modalIcon" style="font-size: 2rem; margin-bottom:15px;">⚠️</div>
+        <h3 id="modalTitle" class="shining-text">Are you sure?</h3>
+        <p id="modalMsg" style="color:#aaa; font-size: 0.9rem;">This action cannot be undone.</p>
+        <div id="modalActions" style="margin-top:20px;">
+            <button class="modal-btn modal-close" onclick="closeModal()">CANCEL</button>
+            <button class="modal-btn modal-confirm" id="confirmBtn">CONFIRM</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+  const db = getFirestore(initializeApp({
+    apiKey: "AIzaSyAgdvRUcN5q6r6EkNzlPU6EdNblMNjlMzg",
+    authDomain: "happytails-50138.firebaseapp.com",
+    projectId: "happytails-50138",
+    storageBucket: "happytails-50138.firebasestorage.app",
+    messagingSenderId: "377084680099",
+    appId: "1:377084680099:web:cb2a3c5f7ce482dd97ac16"
+  }));
+
+  window.closeModal = () => document.getElementById('customModal').style.display = "none";
+  
+  const showModal = (title, msg, onConfirm, icon = '⚠️') => {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerText = msg;
+      document.getElementById('modalIcon').innerText = icon;
+      document.getElementById('confirmBtn').onclick = () => { onConfirm(); closeModal(); };
+      document.getElementById('customModal').style.display = "flex";
+  };
+
+  document.getElementById('vetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+          await addDoc(collection(db, 'vets'), {
+              clinicName: document.getElementById('clinicName').value,
+              doctorName: document.getElementById('doctorName').value,
+              phone: document.getElementById('phone').value,
+              location: document.getElementById('location').value,
+              specialty: document.getElementById('specialty').value,
+              hours: document.getElementById('hours').value,
+              emergency: document.getElementById('emergency').value,
+              notes: document.getElementById('notes').value
+          });
+          document.getElementById('vetForm').reset();
+          showModal("SUCCESS", "Clinic published successfully!", () => {}, '✅');
+      } catch (e) { showModal("ERROR", e.message, () => {}, '❌'); }
+  });
+
+  onSnapshot(collection(db, "vets"), (snapshot) => {
+      const list = document.getElementById('vetList');
+      document.getElementById('count').innerText = snapshot.size;
+      list.innerHTML = "";
+      snapshot.forEach((doc) => {
+          const d = doc.data();
+          const div = document.createElement('div');
+          div.className = "vet-card";
+          div.innerHTML = `
+            <div><strong>${d.clinicName}</strong><br><small style="color:#aaa;">${d.location} | 📞 ${d.phone}</small></div>
+            <button class="delete-btn" onclick="confirmDelete('${doc.id}')">REMOVE</button>
+          `;
+          list.appendChild(div);
+      });
+  });
+
+  window.confirmDelete = (id) => {
+      showModal("DELETE CLINIC", "Permanently remove this entry?", async () => {
+          await deleteDoc(doc(db, "vets", id));
+      });
+  };
+</script>
+</body>
+</html>

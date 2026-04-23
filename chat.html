@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Inbox</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+        
+        body { 
+            background: url('1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            color: white; 
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            background: rgba(0, 0, 0, 0.85); 
+            border-left: 1px solid #222; 
+            border-right: 1px solid #222; 
+        }
+        
+        /* Header */
+        .header { 
+            padding: 16px; 
+            background: #075e54; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            color: #fff; 
+        }
+        
+        .back-btn { 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 24px; 
+            cursor: pointer; 
+            padding: 5px; 
+        }
+
+        /* List Area with Rolling Animation */
+        .list { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+        }
+        
+        .user-card { 
+            padding: 20px; 
+            margin-bottom: 12px; 
+            background: rgba(255, 255, 255, 0.08); 
+            border-radius: 16px; 
+            cursor: pointer; 
+            position: relative; 
+            animation: rollIn 0.5s ease-out forwards; 
+            opacity: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes rollIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-card:hover { background: rgba(255, 255, 255, 0.15); }
+        
+        .user-card b { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-size: 16px; 
+            color: #fff; 
+        }
+        
+        .msg-text { 
+            display: block; 
+            opacity: 0.9; 
+            font-size: 14px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        
+        /* Red Profit/Cart Style */
+        .cart-msg { 
+            color: #ff4757 !important; 
+            font-weight: bold; 
+        }
+        
+        .badge { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            background: #25d366; 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="location.href='index.html'">←</button>
+            ADMIN INBOX
+        </div>
+        <div id="list" class="list"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const db = getFirestore(initializeApp({
+            apiKey: "AIzaSy...",
+            authDomain: "happytails-50138.firebaseapp.com",
+            projectId: "happytails-50138",
+        }));
+
+        const list = document.getElementById("list");
+
+        onSnapshot(collection(db, "chats"), (snap) => {
+            let chats = [];
+            snap.forEach(d => {
+                const data = d.data();
+                chats.push({
+                    id: d.id,
+                    lastMessage: data.lastMessage || "No message yet...",
+                    lastTime: data.lastTime || 0,
+                    lastType: data.lastType || "text", // Detects if it's 'buy' or 'text'
+                    unread: (data.lastSender === "customer") && (data.lastTime > (data.lastSeenByAdmin || 0))
+                });
+            });
+
+            // Sorting by lastTime (Highest/Newest first)
+            chats.sort((a, b) => b.lastTime - a.lastTime);
+
+            list.innerHTML = "";
+            chats.forEach(c => {
+                const isCart = c.lastType === "buy";
+                // Cart display logic: Adds emoji and red text alert
+                const displayText = isCart ? `🛒 BUYING NOW: ${c.lastMessage}` : c.lastMessage;
+                
+                const div = document.createElement("div");
+                div.className = "user-card";
+                div.innerHTML = `
+                    <b>${c.id.toUpperCase()}</b>
+                    <small class="msg-text ${isCart ? 'cart-msg' : ''}">${displayText}</small>
+                    ${c.unread ? `<div class="badge">NEW</div>` : ""}
+                `;
+                
+                div.onclick = async () => {
+                    await updateDoc(doc(db, "chats", c.id), { lastSeenByAdmin: Date.now() });
+                    window.location.href = "con.html?user=" + c.id;
+                };
+                list.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>

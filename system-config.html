@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE IMAGE TO LINK | V2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-magenta: #FF00FF;
+            --neon-cyan: #00FFFF;
+            --neon-lime: #39FF14;
+            --neon-red: #FF4444;
+            --bg-overlay: rgba(10, 15, 30, 0.9);
+        }
+
+        body { 
+            margin: 0; font-family: 'Inter', sans-serif; 
+            background: url('1.jpg') no-repeat center center fixed;
+            background-size: cover; 
+            color: white; min-height: 100vh;
+        }
+
+        .overlay { background: var(--bg-overlay); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
+        .container { 
+            width: 100%; max-width: 500px; text-align: center; 
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .shining-text {
+            text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px var(--neon-cyan);
+            color: #fff !important; text-transform: uppercase; margin: 0 0 30px 0;
+        }
+
+        /* UPLOAD AREA */
+        .circle { 
+            width: 180px; height: 180px; border-radius: 50%; 
+            border: 2px solid var(--neon-magenta); margin: 0 auto 30px; 
+            overflow: hidden; background: rgba(0,0,0,0.3); position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        .upload-trigger { 
+            cursor: pointer; z-index: 10;
+            width: 60px; height: 60px; background: var(--neon-magenta);
+            border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; font-size: 2rem; color: white;
+            transition: 0.3s; box-shadow: 0 0 20px rgba(255,0,255,0.4);
+        }
+        .upload-trigger:hover { transform: scale(1.1); }
+
+        /* STATUS & INPUT */
+        #status-bar { height: 20px; font-size: 0.7rem; margin-bottom: 15px; color: var(--neon-cyan); text-transform: uppercase; }
+        textarea { 
+            width: 100%; height: 100px; background: rgba(0,0,0,0.5); 
+            color: var(--neon-lime); border: 1px solid #444; 
+            padding: 15px; margin: 10px 0; box-sizing: border-box; 
+            font-family: monospace; font-size: 0.7rem; resize: none; border-radius: 12px;
+        }
+
+        /* BUTTONS */
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { 
+            flex: 1; padding: 15px; border: none; border-radius: 12px; 
+            font-weight: bold; cursor: pointer; text-transform: uppercase; 
+            transition: 0.3s;
+        }
+        .btn-gen { background: var(--neon-cyan); color: #000; }
+        .btn-copy { background: var(--neon-lime); color: #000; }
+        .btn-clear { background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red); margin-top: 15px; width: 100%; }
+        .btn-back { background: rgba(255,255,255,0.1); color: white; margin-top: 15px; width: 100%; text-decoration: none; display: block; padding: 15px; border-radius: 12px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; }
+        .btn-back:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="overlay">
+        <div class="container">
+            <h1 class="shining-text" style="font-size: 1.5rem;">IMAGE PROCESSOR</h1>
+            
+            <div class="circle" id="circle">
+                <img id="imgPreview" class="preview-img" src="" alt="Preview">
+                <label for="imgInput" class="upload-trigger" id="triggerBtn"><i class="fa-solid fa-plus"></i></label>
+            </div>
+            
+            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+            
+            <div id="status-bar">Waiting for file upload...</div>
+            
+            <textarea id="linkOutput" placeholder="The base64 link will be generated here..." readonly></textarea>
+            
+            <div class="btn-group">
+                <button class="btn-gen" onclick="generate()">GENERATE</button>
+                <button class="btn-copy" onclick="copy()">COPY</button>
+            </div>
+            
+            <button class="btn-clear" onclick="reset()">CLEAR ALL</button>
+            <a href="index.html" class="btn-back">BACK TO DASHBOARD</a>
+        </div>
+    </div>
+
+    <script>
+        let base64String = "";
+
+        function notify(msg, color = "#00FFFF") {
+            const bar = document.getElementById('status-bar');
+            bar.innerText = msg;
+            bar.style.color = color;
+        }
+
+        function handleFile(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                notify(`Processing: ${file.name}`);
+
+                reader.onload = (e) => {
+                    base64String = e.target.result;
+                    const preview = document.getElementById('imgPreview');
+                    preview.src = base64String;
+                    preview.style.display = 'block';
+                    document.getElementById('triggerBtn').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function generate() {
+            if(!base64String) {
+                notify("ERROR: No image selected!", "#FF4444");
+                return;
+            }
+            document.getElementById('linkOutput').value = base64String;
+            notify("LINK GENERATED SUCCESSFULLY");
+        }
+
+        function copy() {
+            const output = document.getElementById("linkOutput");
+            if(!output.value) {
+                notify("GENERATE LINK FIRST", "#FF4444");
+                return;
+            }
+            output.select();
+            document.execCommand("copy");
+            notify("COPIED TO CLIPBOARD");
+        }
+
+        function reset() {
+            base64String = "";
+            document.getElementById('imgInput').value = "";
+            document.getElementById('linkOutput').value = "";
+            document.getElementById('imgPreview').style.display = "none";
+            document.getElementById('triggerBtn').style.display = "flex";
+            notify("SYSTEM RESET");
+        }
+    </script>
+</body>
+</html>

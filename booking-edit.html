@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTH | MANAGEMENT DASHBOARD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-magenta: #FF00FF;
+            --neon-cyan: #00FFFF;
+            --neon-red: #FF4444;
+            --bg-overlay: rgba(10, 15, 30, 0.9);
+        }
+
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: url('1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white; min-height: 100vh;
+        }
+
+        .overlay { background: var(--bg-overlay); min-height: 100vh; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        
+        .shining-text {
+            text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px var(--neon-cyan);
+            color: #fff !important; text-transform: uppercase;
+        }
+
+        .nav-header { display: flex; align-items: center; margin-bottom: 30px; }
+        .back-btn { 
+            text-decoration: none; color: white; padding: 10px 20px; 
+            border: 1px solid var(--neon-magenta); border-radius: 5px; 
+            font-size: 0.8rem; text-transform: uppercase; transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--neon-magenta); }
+
+        /* The Data Cards */
+        .record-card { 
+            background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; 
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .data-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; font-weight: bold; }
+        .value { font-size: 0.9rem; font-weight: 500; color: #fff; }
+        
+        .btn-delete { 
+            width: 100%; background: rgba(255, 107, 107, 0.1); color: var(--neon-red); 
+            border: 1px solid var(--neon-red); padding: 12px; border-radius: 8px; 
+            margin-top: 15px; cursor: pointer; font-weight: bold; text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .btn-delete:hover { background: var(--neon-red); color: white; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #111; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); max-width: 300px; }
+        .btn-confirm { background: var(--neon-red); color: white; padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="container">
+        <div class="nav-header">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> BACK</a>
+        </div>
+        
+        <h2 class="shining-text" style="font-size: 1.2rem; margin-bottom: 30px;">LIVE SUBMISSIONS</h2>
+        <div id="recordsContainer"></div>
+    </div>
+</div>
+
+<div class="modal" id="warningModal">
+    <div class="modal-content">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--neon-red); margin-bottom: 20px;"></i>
+        <h3 class="shining-text" style="font-size: 1.2rem;">DELETE RECORD</h3>
+        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">This action is permanent and cannot be undone.</p>
+        <button class="btn-confirm" onclick="executeDelete()">CONFIRM & DELETE</button>
+        <button onclick="closeModal()" style="border:none; background:none; margin-top:15px; color:#666; cursor: pointer;">CANCEL</button>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgdvRUcN5q6r6EkNzlPU6EdNblMNjlMzg",
+    authDomain: "happytails-50138.firebaseapp.com",
+    projectId: "happytails-50138",
+    storageBucket: "happytails-50138.firebasestorage.app",
+    messagingSenderId: "377084680099",
+    appId: "1:377084680099:web:cb2a3c5f7ce482dd97ac16"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  let idToDelete = null;
+
+  onSnapshot(collection(db, "bookings"), (snapshot) => {
+      const container = document.getElementById('recordsContainer');
+      container.innerHTML = "";
+      snapshot.forEach((doc) => {
+          const d = doc.data();
+          const card = document.createElement('div');
+          card.className = "record-card";
+          card.innerHTML = `
+            <div class="data-row"><span class="label">Name</span><span class="value">${d.name}</span></div>
+            <div class="data-row"><span class="label">Phone</span><span class="value">${d.phone}</span></div>
+            <div class="data-row"><span class="label">Date/Time</span><span class="value">${new Date(d.time).toLocaleString()}</span></div>
+            <div class="data-row"><span class="label">Pet</span><span class="value">${d.pet}</span></div>
+            <div class="data-row"><span class="label">Exp/Housing</span><span class="value">${d.experience || 'N/A'}</span></div>
+            <div class="data-row"><span class="label">Purpose</span><span class="value">${d.purpose || 'Visit'}</span></div>
+            <button class="btn-delete" onclick="prepareDelete('${doc.id}')">DELETE RECORD</button>
+          `;
+          container.appendChild(card);
+      });
+  });
+
+  window.prepareDelete = (id) => {
+      idToDelete = id;
+      document.getElementById('warningModal').style.display = "flex";
+  };
+
+  window.closeModal = () => { document.getElementById('warningModal').style.display = "none"; };
+
+  window.executeDelete = async () => {
+      await deleteDoc(doc(db, "bookings", idToDelete));
+      closeModal();
+  };
+</script>
+</body>
+</html>
